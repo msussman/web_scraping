@@ -30,15 +30,24 @@ for prod_container in prod_containers[:2]:
     print(prod_link)
     prod_response = get(prod_link)
     prod_html = BeautifulSoup(prod_response.text, 'html.parser')
-    #pull description from individual page
+    # pull description from individual page
     prod_sum_container = prod_html.find('div', class_='product-bio')
     prod_summary = prod_sum_container.p.text.strip()
-    #output product html to file
+    # pull type from individual page
+    prod_type_containers = prod_html.find_all('a')
+    for prod_type_container in prod_type_containers:
+        if "product_category" in prod_type_container['href']:
+            prod_category = prod_type_container.text
+            print("product_category {}".format(prod_category))
+        elif "type_name" in prod_type_container['href']:
+            prod_type = prod_type_container.text
+            print("product_type {}".format(prod_type))
+    # output product html to file
     '''with open(prod_name + '.html', 'w') as f:
         f.write(str(prod_html))'''
     # grower
     prod_grower = prod_container.div.text.strip()
-    # navigate to product page and parse HTML 
+    # navigate to product page and parse HTML
     # loop through attributes in the stats clearfix...div
     # loop through each div value container and pull out the price and size
     prod_price_div = prod_container.find('div', class_='parent_price_box')
