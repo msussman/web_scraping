@@ -4,7 +4,36 @@ import sys
 import os
 from urllib.parse import urljoin
 
+# get list of all dispensaries in DC
 main_page = "https://www.stickyguide.com"
+
+DC_page = urljoin(main_page, "/washington-dc/dispensary-finder")
+
+response = get(DC_page)
+
+DC_soup = BeautifulSoup(response.text, 'html.parser')
+print(type(DC_soup))
+
+
+disp_details = DC_soup.find_all('div', class_='details')
+disp_locations = DC_soup.find_all('div', class_='location')
+
+
+print(len(disp_details))
+
+disp_count = 0
+for disp_details in disp_details:
+    # dispensary name
+    disp_name = disp_details.h3.a.text.strip()
+    print(disp_name)
+    # dispensary page
+    disp_link = urljoin(main_page, disp_details.h3.a['href'])
+    print(disp_link)
+    disp_address = disp_locations[disp_count].text.strip().replace("/n", " ")
+    print(disp_address)
+    disp_count += 1
+'''
+
 
 # url for product lists
 product_url_list = ["Flowers", "Pre+Rolls", "Concentrates",
@@ -71,9 +100,9 @@ for product_url in product_url_list:
         # loop through length of values list to get value and sizes
         for i in range(len(prod_price_values)):
             prod_price_value = prod_price_values[i]
-            '''remove denomination span'''
+            # remove denomination span
             for match in prod_price_value.find_all('span'):
                 match.extract()
             prod_price = prod_price_value.text
             prod_size = prod_price_sizes[i].text
-            #print(prod_name, prod_link, prod_grower, prod_summary, prod_price, prod_size)
+            #print(prod_name, prod_link, prod_grower, prod_summary, prod_price, prod_size) '''
