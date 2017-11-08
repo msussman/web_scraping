@@ -68,7 +68,7 @@ for disp_details in disp_details:
             prod_html = BeautifulSoup(prod_response.text, 'html.parser')
             # pull description from individual page
             prod_sum_container = prod_html.find('div', class_='product-bio')
-            #prod_summary = prod_sum_container.p.text.strip()
+            # prod_summary = prod_sum_container.p.text.strip()
             # pull type from individual page
             '''prod_type_containers = prod_html.find_all('a')
             for prod_type_container in prod_type_containers:
@@ -79,9 +79,10 @@ for disp_details in disp_details:
                     prod_type = prod_type_container.text
                     print("product_type {}".format(prod_type))'''
             # output product html to file
-            output_name = prod_name.replace("-", "_").replace("/", "_")
+            output_name = prod_name.replace("/", "_").replace("'", "_")\
+                                   .replace(":", "_").replace("-", "_")
             output_folder = os.path.join(disp_folder,
-                                        product_url.replace("+", "_"))
+                                         product_url.replace("+", "_"))
             output_path = os.path.join(output_folder, output_name) + ".html"
             print(output_path)
             if not os.path.exists(output_folder):
