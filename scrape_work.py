@@ -7,6 +7,58 @@ from urllib.parse import urljoin
 import codecs
 import pandas as pd
 import time
+import re
+
+
+def multireplace(string, replacements):
+    """
+    Given a string and a replacement map, it returns the replaced string.
+    :param str string: string to execute replacements on
+    :param dict replacements: replacement dictionary {value to find: value to replace}
+    :rtype: str
+    """
+    # Place longer ones first to keep shorter substrings from matching where the longer ones should take place
+    # For instance given the replacements {'ab': 'AB', 'abc': 'ABC'} against the string 'hey abc', it should produce
+    # 'hey ABC' and not 'hey ABc'
+    substrs = sorted(replacements, key=len, reverse=True)
+
+    # Create a big OR regex that matches any of the substrings to replace
+    regexp = re.compile('|'.join(map(re.escape, substrs)))
+
+    # For each match, look up the new string in the replacements
+    return regexp.sub(lambda match: replacements[match.group(0)], string)
+
+def grower_dict():
+    '''
+        Returns a dictionary to find and replace keywords in text
+    '''
+    find_replace = {'8TH & PENN' : '8P',
+                    'ABATIN' : 'AW',
+                    'ABATIN WELLNES' : 'AW',
+                    'ABATIN WELLNESS' : 'AW',
+                    'ABATIN WELLNESS CENTER' : 'AW',
+                    'ABATIN WELLNESS DC' : 'AW',
+                    'ABATIN WELNESS' : 'AW',
+                    'ALTERNATIVE SOLUTIOINS' : 'AS',
+                    'ALTERNATIVE SOLUTIONS' : 'AS',
+                    'APELLES' : 'AC',
+                    'APELLES CULTIVATION' : 'AC',
+                    'CAPITAL CITY CARE' : 'CC',
+                    'CAPITAL CITY CULTIVATION' : 'CC',
+                    'DISTRICT GROWERS' : 'DG',
+                    'DISTRICT GROWERS !' : 'DG',
+                    'DISTRICT GROWERS!' : 'DG',
+                    'HOLISTIC REMDIES' : 'HR',
+                    'HOLISTIC REMEDIES' : 'HR',
+                    'HOLISTIC REMEIDES' : 'HR',
+                    'LIBERTY' : 'LB',
+                    'ORGANIC WELLNESS' : 'OW',
+                    'PHYTO' : 'PM',
+                    'PHYTO MANAGEMENT' : 'PM',
+                    'TAKOMA WELLNESS' : 'TK',
+                    'TAKOMA WELLNESS CENTER' : 'TK'}
+    return find_replace
+
 
 pull_date = time.strftime("%Y%m%d")
 
@@ -39,7 +91,7 @@ for disp_details in disp_details:
     # dispensary page
     disp_link = urljoin(main_page, disp_details.h3.a['href'])
     print(disp_link)
-    disp_address = disp_locations[disp_count].text
+    disp_address = disp_locations[disp_count].text.strip()
     print(disp_address)
 
     product_url_list = ["Flowers", "Pre_Rolls", "Concentrates",
@@ -73,8 +125,8 @@ for disp_details in disp_details:
             prod_html = BeautifulSoup(prod_response.text, 'html.parser')'''
 
             # import html already scraped from site
-            html_name = prod_name.replace(
-                "/", "_").replace("'", "_").replace(":", "_").replace("-","_") + ".html"
+            trantab = str.maketrans("/':-,&", "______")
+            html_name = prod_name.translate(trantab) + ".html"
             html_path = os.path.join(disp_folder, product_url, html_name)
             f = codecs.open(html_path, 'r', encoding="utf8")
             prod_html = BeautifulSoup(f.read(), 'html.parser')
@@ -104,8 +156,10 @@ for disp_details in disp_details:
                 except:
                     prod_category = "Unknown"
 
-                # grower
+                # grower, find and replace to standardize names
+                find_replace = grower_dict()
                 prod_grower = prod_container.div.text.strip()
+                prod_grower = multireplace(prod_grower, find_replace)
                 # navigate to product page and parse HTML
                 # loop through each div value container and pull price and size
                 prod_price_div = prod_container.find(
